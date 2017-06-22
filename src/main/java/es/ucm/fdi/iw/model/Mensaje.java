@@ -1,22 +1,13 @@
 package es.ucm.fdi.iw.model;
 
 import java.io.Serializable;
-import java.sql.Date;
-
 import javax.persistence.Column;
 //Imports basicos para JPA
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-import javax.persistence.NamedQueries;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
-
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 public class Mensaje implements Serializable {
@@ -40,7 +31,7 @@ public class Mensaje implements Serializable {
 	
 	//Cuerpo del mensaje
 	@Column(name = "fecha_mensaje", nullable = false)
-	private Date fechaMensaje;
+	private String fechaMensaje;
 	@Column(name = "asunto", nullable = false)
 	private String asunto;
 	@Column(name = "mensaje", nullable = false)
@@ -83,10 +74,10 @@ public class Mensaje implements Serializable {
 	public void setMensaje(String mensaje) {
 		this.mensaje = mensaje;
 	}
-	public Date getFechaMensaje() {
+	public String getFechaMensaje() {
 		return fechaMensaje;
 	}
-	public void setFechaMensaje(Date fechaMensaje) {
+	public void setFechaMensaje(String fechaMensaje) {
 		this.fechaMensaje = fechaMensaje;
 	}
 }

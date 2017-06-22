@@ -3,7 +3,6 @@ package es.ucm.fdi.iw.model;
 
 import java.math.BigInteger;
 import java.security.SecureRandom;
-import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,12 +55,6 @@ public class Paciente extends Usuario {
 	@JoinColumn(name="paciente_id")
 	private List<Tratamiento> tratamiento;
 
-
-	//Lista de pedidos
-	@OneToMany(targetEntity=Pedidos.class, cascade=CascadeType.REMOVE)
-	@JoinColumn(name="paciente_id")
-	private List<Pedidos> listaPedidos;
-
 	//forma de pago(0=paypal ,1=tarjeta, 2= contrareembolso)
 	@Column(name = "forma_pago", nullable = true)
 	private int formaPago;
@@ -80,7 +73,6 @@ public class Paciente extends Usuario {
 		this.role = "PAC";
 		this.usuario = "";
 		this.codigoAut = this.generarCodigoAut();
-		this.listaPedidos = new ArrayList<Pedidos>();
 		this.tratamiento = new ArrayList<Tratamiento>();
 	}
 
@@ -159,50 +151,17 @@ public class Paciente extends Usuario {
 	}
 
 	public Farmacia  getFarmacia() {
-		// TODO Auto-generated method stub
+		
 		return farmacia;
 	}
 	public void setFarmacia(Farmacia far){
 		farmacia=far;
 	}
-
-	public List<Pedidos> getListaPedidos() {
-		return listaPedidos;
-	}
-
-	public void setListaPedidos(List<Pedidos> listaPedidos) {
-		this.listaPedidos = listaPedidos;
-	}
-
 	public void setComAutonoma(String comAutonoma) {
 		this.comAutonoma = comAutonoma;
 	}
 
 	public void setCodigoAut(String codigoAut) {
 		this.codigoAut = codigoAut;
-	}
-
-	public void actualizaListaPedidos(long id) {
-		int i=0;
-		boolean encontrado = false;
-		while (i<listaPedidos.size()&&!encontrado){
-			if(listaPedidos.get(i).getId()==id){
-				listaPedidos.get(i).setEstadoPedido(1);
-				encontrado=true;
-			}
-		}
-
-	}
-
-	public Boolean existeTratamientoEnCurso(Long medicamentoID) {
-		Date fecha = new Date(System.currentTimeMillis());
-
-		for (Tratamiento tratamiento: tratamiento) {
-			if (tratamiento.getMedicamento().getId() == medicamentoID && tratamiento.getFechaFin().after(fecha)) {
-				return true;
-			}
-		}
-
-		return false;
 	}
 }

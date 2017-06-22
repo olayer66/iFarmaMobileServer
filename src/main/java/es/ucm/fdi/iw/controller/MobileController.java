@@ -1,9 +1,6 @@
 package es.ucm.fdi.iw.controller;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.persistence.EntityManager;
-import javax.persistence.NamedQuery;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceContextType;
@@ -14,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+
 
 import es.ucm.fdi.iw.model.Farmacia;
 import es.ucm.fdi.iw.model.Medicamento;
@@ -35,9 +33,10 @@ public class MobileController {
 
 	@PersistenceContext(type=PersistenceContextType.EXTENDED)
 	private EntityManager entityManager;
-
+	
+	//entra el usuario y la password
 	@RequestMapping(value="/login", method=RequestMethod.POST)
-	 public JSONObject LoginAction(@RequestBody JSONObject entrada) {
+	public JSONObject LoginAction(@RequestBody JSONObject entrada) {
 		JSONObject resultado= new JSONObject();
 		String usuario=entrada.get("usuario").toString();
 		String contra=entrada.get("password").toString();
@@ -76,8 +75,10 @@ public class MobileController {
 		}
 		return resultado;
 	}
+	
+	//Sin entrada solo salida de los medicamentos
 	@RequestMapping(value="/medicamentos", method=RequestMethod.GET)
-	 public JSONObject medicamentosAction() {
+	public JSONObject medicamentosAction() {
 		JSONObject resultado= new JSONObject();
 		JSONArray listaMed= new JSONArray();
 		TypedQuery<Medicamento> query= entityManager.createNamedQuery("Medicamento.findAll", Medicamento.class);
@@ -88,6 +89,74 @@ public class MobileController {
 		resultado.put("medicamentos", listaMed);
 		return resultado;
 	}
+	//entra el mensaje
+	@RequestMapping(value="/nuevoMensaje", method=RequestMethod.GET)
+	public String nuevoMensajeAction(@RequestBody JSONObject entrada) {
+		Mensaje mensaje=JsonToMensaje((JSONObject) entrada.get("mensaje"));
+		long idRem= mensaje.getRemitente().getId();
+		long idDes=mensaje.getDestinatario().getId();
+		Usuario remitente;
+		Usuario destiniatario;
+		try{
+		remitente= entityManager.find(Usuario.class, idRem);
+		destiniatario= entityManager.find(Usuario.class, idDes);
+		}catch (NoResultException e) {
+			return "fallo";
+		}		
+		remitente.getMensajesEnviados().add(mensaje);
+		destiniatario.getMensajesRecibidos().add(mensaje);
+		entityManager.persist(destiniatario);
+		entityManager.persist(remitente);
+		entityManager.persist(mensaje);	
+		
+		return "ok";
+	}
+	//entra el id del mensaje
+	@RequestMapping(value="/actMensaje", method=RequestMethod.POST)
+	public String actMensajeAction(@RequestBody JSONObject entrada) {
+		Mensaje mensaje=entityManager.find(Mensaje.class, entrada.get("id").toString());
+		long idRem= mensaje.getRemitente().getId();
+		Usuario remitente;
+		try{
+		remitente= entityManager.find(Usuario.class, idRem);
+		}catch (NoResultException e) {
+			return "fallo";
+		}		
+		remitente.getMensajesRecibidos().remove(mensaje);
+		mensaje.setLeido(true);
+		remitente.getMensajesRecibidos().add(mensaje);
+		entityManager.persist(remitente);
+		entityManager.persist(mensaje);	
+		
+		return "ok";
+	}
+	@RequestMapping(value="/nuevoTratamiento", method=RequestMethod.POST)
+	public String nuevoTratamientoAction(@RequestBody JSONObject entrada) {
+		Tratamiento tratamiento= JsonToTratamiento(entrada);
+		Paciente paciente= entityManager.find(Paciente.class, tratamiento.getPaciente().getId());
+		paciente.getTratamiento().add(tratamiento);
+		
+		entityManager.persist(paciente);
+		entityManager.persist(tratamiento);
+		return "ok";
+	}
+	@RequestMapping(value="/eliminarTratamiento", method=RequestMethod.GET)
+	public String eliminarTratamientoAction(@RequestBody JSONObject entrada) {
+		String id= entrada.get("id").toString();
+		Tratamiento tratamiento = entityManager.find(Tratamiento.class, id);
+		entityManager.remove(tratamiento);	
+		return "ok";
+	}
+	@RequestMapping(value="/toma", method=RequestMethod.GET)
+	public String tomaAction(@RequestBody JSONObject entrada) {
+		String id= entrada.get("id").toString();
+		Tratamiento tratamiento = entityManager.find(Tratamiento.class, id);
+		tratamiento.setNumDosisDia(tratamiento.getNumDosisDia()+1);
+		entityManager.persist(tratamiento);
+		return "ok";
+	}
+	
+	
 	//JSON de la entity medico
 	private JSONObject medicoToJSON(Medico entrada, int tipo){
 		JSONObject medico= new JSONObject();
@@ -206,4 +275,40 @@ public class MobileController {
 		usuario.put("email", entrada.getEmail());
 		return usuario;
 	}
+
+	private Mensaje JsonToMensaje(JSONObject entrada){
+		Mensaje mensaje= new Mensaje();
+		mensaje.setAsunto(entrada.get("asunto").toString());
+		mensaje.setLeido(false);
+		mensaje.setMensaje(entrada.get("mensaje").toString());
+		mensaje.setFechaMensaje(entrada.get("fecha").toString());
+		mensaje.setDestinatario(JsonToUsuario((JSONObject)entrada.get("destinatario")));
+		mensaje.setRemitente(JsonToUsuario((JSONObject)entrada.get("destinatario")));
+		return mensaje;
+	}
+	private Usuario JsonToUsuario(JSONObject entrada){
+		String id= entrada.get("id").toString();
+		Usuario usuario= entityManager.find(Usuario.class, id);
+		return usuario;
+	}
+	private Tratamiento JsonToTratamiento(JSONObject entrada){
+		Tratamiento tratamiento= new Tratamiento();
+		tratamiento.setMedicamento(JsonToMedicamento((JSONObject) entrada.get("medicamento")));
+		tratamiento.setPaciente(JsonToPaciente((JSONObject) entrada.get("paciente")));
+		tratamiento.setFechaInicio(entrada.get("fechaInicio").toString());
+		tratamiento.setFechaFin(entrada.get("fechaFin").toString());
+		tratamiento.setNumDosis(Integer.parseInt(entrada.get("numDosis").toString()));
+		tratamiento.setNumDosisDia(0);
+		return tratamiento;
+	}
+	private Medicamento JsonToMedicamento(JSONObject entrada){
+		String id= entrada.get("id").toString();
+		return entityManager.find(Medicamento.class, id);
+	}
+	private Paciente JsonToPaciente(JSONObject entrada)
+	{
+		String id= entrada.get("id").toString();
+		return entityManager.find(Paciente.class, id);
+	}
+
 }

@@ -1,8 +1,6 @@
 package es.ucm.fdi.iw.model;
 
 import java.io.Serializable;
-import java.sql.Date;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -39,9 +37,9 @@ public class Tratamiento implements Serializable {
 	@ManyToOne(optional = false, fetch = FetchType.LAZY)
 	private Medicamento medicamento;
 	@Column(name = "fecha_inicio", nullable = false)
-	private Date fechaInicio;
+	private String fechaInicio;
 	@Column(name = "fecha_fin", nullable = false)
-	private Date fechaFin;
+	private String fechaFin;
 	//numero de pastillas tomadas
 	@Column(name = "num_dosis", nullable = true)
 	private Integer numDosis;
@@ -83,16 +81,16 @@ public class Tratamiento implements Serializable {
 	public void setPaciente(Paciente paciente) {
 		this.paciente = paciente;
 	}
-	public Date getFechaInicio() {
+	public String getFechaInicio() {
 		return fechaInicio;
 	}
-	public void setFechaInicio(Date fechaInicio) {
+	public void setFechaInicio(String fechaInicio) {
 		this.fechaInicio = fechaInicio;
 	}
-	public Date getFechaFin() {
+	public String getFechaFin() {
 		return fechaFin;
 	}
-	public void setFechaFin(Date fechaFinTratamiento) {
+	public void setFechaFin(String fechaFinTratamiento) {
 		this.fechaFin = fechaFinTratamiento;
 	}
 	public Medicamento getMedicamento() {

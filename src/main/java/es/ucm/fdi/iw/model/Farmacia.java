@@ -1,18 +1,11 @@
 package es.ucm.fdi.iw.model;
 
 import java.io.Serializable;
-import java.util.List;
-
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
-
 import org.hibernate.annotations.NamedQueries;
 import org.hibernate.annotations.NamedQuery;
 
@@ -51,19 +44,6 @@ public class Farmacia implements Serializable {
 	@Column(name = "estado", nullable = false)
 	private int estado;
 	
-	//Dueño de la farmacia (N/1)
-	@ManyToOne(targetEntity=Farmaceutico.class)
-	private Farmaceutico duenio;
-	
-	//Listado de clientes // la farmacia no tiene un listado de pacientes, solo tiene pedidos
-	@OneToMany(targetEntity=Pedidos.class, cascade=CascadeType.REMOVE)
-	@JoinColumn(name="farmacia_id")
-	private List<Pedidos> listaPedidos;
-	
-	//Stock de la farmacia (N/1)
-	@OneToMany(targetEntity=ExistenciaMedicamento.class, cascade=CascadeType.REMOVE)
-	@JoinColumn(name="farmacia_id")
-	private List<ExistenciaMedicamento> stock;
 
 	//getters y setters
 	public long getId() {
@@ -121,23 +101,6 @@ public class Farmacia implements Serializable {
 	public void setProvincia(String provincia) {
 		this.provincia = provincia;
 	}
-
-	public Farmaceutico getDuenio() {
-		return duenio;
-	}
-
-	public void setDuenio(Farmaceutico duenio) {
-		this.duenio = duenio;
-	}
-
-	public List<ExistenciaMedicamento> getStock() {
-		return stock;
-	}
-
-	public void setStock(List<ExistenciaMedicamento> stock) {
-		this.stock = stock;
-	}
-
 	public String getComAutonoma() {
 		return comAutonoma;
 	}
@@ -153,38 +116,4 @@ public class Farmacia implements Serializable {
 	public void setEstado(int estado) {
 		this.estado = estado;
 	}
-
-	public List<Pedidos> getListaPedidos() {
-		return listaPedidos;
-	}
-
-	public void setListaPedidos(List<Pedidos> listaPedidos) {
-		this.listaPedidos = listaPedidos;
-	}
-	public int getCountPedidosPendientes(){
-		int n=0;
-		
-		for (Pedidos p : listaPedidos){
-			if (p.getEstadoPedido()==0){
-				n++;
-			}
-		}
-		
-		
-		return n;
-	}
-
-	public int contieneMedicamento(ExistenciaMedicamento existenciaStock) {
-		
-		for (ExistenciaMedicamento e : stock){
-			if(e.getMedicamento()==existenciaStock.getMedicamento()){
-				
-				return stock.indexOf(e);
-			}
-		}
-		
-		return -1;
-	}
-	
-	
 }
