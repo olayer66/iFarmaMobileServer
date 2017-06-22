@@ -1,0 +1,24 @@
+[data-submit],
+[data-ui-back] {
+	cursor: pointer;
+}
+
+.profile .profile__avatar i {
+	border: 2px solid #222;
+    border-radius: 5px;
+    font-size: 80px;
+    padding: 20px;
+}
+
+.profile .profile__panel .panel-body {
+	padding: 5px 10px;
+}
+
+.treatment .treatment__dose i {
+	color: #222;
+	font-size: 30px;
+}
+
+.treatment .treatment__dose i.empty {
+	color: #ccc;
+}

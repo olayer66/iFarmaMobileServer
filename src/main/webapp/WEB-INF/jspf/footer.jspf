@@ -1,0 +1,28 @@
+<div class="container">
+	<hr>
+	
+	<footer>
+	    <div class="row">
+	        <div class="col-lg-12">
+	            <p>
+	            	Copyright &copy; iFarma IW 2017
+	            	&nbsp;  &nbsp; <a href="/conocenos">Conocenos</a>
+	            	&nbsp;  &nbsp; <a href="/avisoLegal">Aviso legal</a>
+	            </p>
+	        </div>
+	    </div>
+	</footer>
+</div>
+
+<!-- jQuery -->
+<script src="/static/js/jquery.js"></script>
+<!-- Bootstrap Core JavaScript -->
+<script src="/static/js/bootstrap.js"></script>
+<!--datepicker-->
+<script src="/static/js/datepicker.js"></script>
+<!--datatables-->
+<script src="/static/js/datatables.js"></script>
+<!-- js propio -->
+<script src="/static/js/main.js"></script>
+</body>
+</html>

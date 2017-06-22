@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>iFarma</title>
+    <link rel="shortcut icon" type="image/x-icon"  href="/static/img/favicon.ico">
+    <link rel="icon" type="image/x-icon"  href="/static/img/favicon.ico">
+    <!-- Bootstrap Core CSS -->
+    <link href="/static/css/bootstrap.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="/static/css/3-col-portfolio.css" rel="stylesheet">
+    <!-- Include Bootstrap Datepicker -->
+    <link href="/static/css/datepicker.css" rel="stylesheet">
+    <link href="/static/css/datatables.css" rel="stylesheet">
+    <link href="/static/css/main.css" rel="stylesheet">
+</head>
