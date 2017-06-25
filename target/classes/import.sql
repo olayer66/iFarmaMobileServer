@@ -42,7 +42,7 @@ INSERT INTO TRATAMIENTO VALUES (8, '2017-05-28', '2018-04-04', 4, 2, '6 horas', 
 INSERT INTO TRATAMIENTO VALUES (9, '2017-05-28', '2018-04-04', 6, 1, '4 horas', 7098249, 7);
 
 INSERT INTO MENSAJE VALUES ( 1, 'EnfermedadDsdPaciente', '2017-05-28', false, 'Esto es una prueba de mensaje de 1 a 2',1,2)
-INSERT INTO MENSAJE VALUES ( 2, 'EnfermedadDsdMedico', '2017-05-28', true, 'Esto es una prueba de mensaje de 2 a 1',2,1)
+INSERT INTO MENSAJE VALUES ( 2, 'EnfermedadDsdMedico', '2017-05-28', false, 'Esto es una prueba de mensaje de 2 a 1',2,1)
 
 INSERT INTO MENSAJE VALUES ( 3, 'EnfermedadDsdPaciente', '2017-05-28', false, 'Esto es una prueba de mensaje de 1 a 2',1,3)
 INSERT INTO MENSAJE VALUES ( 4, 'EnfermedadDsdMedico', '2017-05-28', true, 'Esto es una prueba de mensaje de 2 a 1',3,1)
@@ -54,7 +54,7 @@ INSERT INTO MENSAJE VALUES ( 7, 'EnfermedadDsdPaciente', '2017-05-28', false, 'E
 INSERT INTO MENSAJE VALUES ( 8, 'EnfermedadDsdMedico', '2017-05-28', true, 'Esto es una prueba de mensaje de 2 a 1',6,5)
 
 INSERT INTO MENSAJE VALUES ( 9, 'EnfermedadDsdPaciente', '2017-05-28', false, 'Esto es una prueba de mensaje de 1 a 2',5,7)
-INSERT INTO MENSAJE VALUES ( 10, 'EnfermedadDsdMedico', '2017-05-28', true, 'Esto es una prueba de mensaje de 2 a 1',7,5)
+INSERT INTO MENSAJE VALUES ( 10, 'EnfermedadDsdMedico', '2017-05-28', false, 'Esto es una prueba de mensaje de 2 a 1',7,5)
 
 INSERT INTO MENSAJE VALUES ( 11, 'EnfermedadDsdPaciente', '2017-05-28', false, 'Esto es una prueba de mensaje de 1 a 2',5,8)
 INSERT INTO MENSAJE VALUES ( 12, 'EnfermedadDsdMedico', '2017-05-28', true, 'Esto es una prueba de mensaje de 2 a 1',8,5)

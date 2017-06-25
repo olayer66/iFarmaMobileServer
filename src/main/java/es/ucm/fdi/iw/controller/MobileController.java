@@ -5,11 +5,14 @@ import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.PersistenceContextType;
 import javax.persistence.TypedQuery;
+import javax.transaction.Transactional;
 
 import org.apache.log4j.Logger;
+import org.springframework.boot.jackson.JsonObjectDeserializer;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 
@@ -90,32 +93,39 @@ public class MobileController {
 		return resultado;
 	}
 	//entra el mensaje
-	@RequestMapping(value="/nuevoMensaje", method=RequestMethod.GET)
-	public String nuevoMensajeAction(@RequestBody JSONObject entrada) {
-		Mensaje mensaje=JsonToMensaje((JSONObject) entrada.get("mensaje"));
+	@Transactional
+	@RequestMapping(value="/nuevoMensaje", method=RequestMethod.POST)
+	public JSONObject nuevoMensajeAction(@RequestBody JSONObject entrada) {
+		JSONObject respuesta= new JSONObject();
+		String error="";
+		String msg="ok";
+		Mensaje mensaje=JsonToMensaje((JSONObject) entrada);
 		long idRem= mensaje.getRemitente().getId();
 		long idDes=mensaje.getDestinatario().getId();
-		Usuario remitente;
-		Usuario destiniatario;
+		Usuario remitente = null;
+		Usuario destiniatario = null;
 		try{
 		remitente= entityManager.find(Usuario.class, idRem);
 		destiniatario= entityManager.find(Usuario.class, idDes);
 		}catch (NoResultException e) {
-			return "fallo";
+			error="fallo";
+			msg="Resultados no encontrados";
 		}		
 		remitente.getMensajesEnviados().add(mensaje);
 		destiniatario.getMensajesRecibidos().add(mensaje);
 		entityManager.persist(destiniatario);
 		entityManager.persist(remitente);
 		entityManager.persist(mensaje);	
-		
-		return "ok";
+		respuesta.put("error", error);
+		respuesta.put("mensaje", msg);
+		return respuesta;
 	}
 	//entra el id del mensaje
+	@Transactional
 	@RequestMapping(value="/actMensaje", method=RequestMethod.POST)
-	public String actMensajeAction(@RequestBody JSONObject entrada) {
-		Mensaje mensaje=entityManager.find(Mensaje.class, entrada.get("id").toString());
-		long idRem= mensaje.getRemitente().getId();
+	public String actMensajeAction(@RequestParam("id") Long id) {
+		Mensaje mensaje=entityManager.find(Mensaje.class, id);
+		long idRem= mensaje.getDestinatario().getId();
 		Usuario remitente;
 		try{
 		remitente= entityManager.find(Usuario.class, idRem);
@@ -130,23 +140,49 @@ public class MobileController {
 		
 		return "ok";
 	}
+	//devuelve el nuevo listado de mensajes
+	@RequestMapping(value="/actListaMensajes", method=RequestMethod.POST)
+	public JSONObject actListaMensajesAction(@RequestBody JSONObject entrada) {
+		JSONObject listaMen= new JSONObject();
+		long id= Long.parseLong(entrada.get("id").toString());
+		Usuario usuario = entityManager.find(Usuario.class,id);
+		JSONArray listaM= new JSONArray();
+		for(Mensaje mensaje: usuario.getMensajesRecibidos())
+		{
+			listaM.add(mensajeToJSON(mensaje));
+		}
+		listaMen.put("error", "");
+		listaMen.put("mensajes",listaM);
+		return listaMen;
+	}
+	/*---TRATAMIENTOS----*/
+	@Transactional
 	@RequestMapping(value="/nuevoTratamiento", method=RequestMethod.POST)
-	public String nuevoTratamientoAction(@RequestBody JSONObject entrada) {
+	public JSONObject nuevoTratamientoAction(@RequestBody JSONObject entrada) {
+		JSONObject respuesta= new JSONObject();
 		Tratamiento tratamiento= JsonToTratamiento(entrada);
+		
 		Paciente paciente= entityManager.find(Paciente.class, tratamiento.getPaciente().getId());
 		paciente.getTratamiento().add(tratamiento);
 		
 		entityManager.persist(paciente);
 		entityManager.persist(tratamiento);
-		return "ok";
+		respuesta.put("error", "");
+		respuesta.put("mensaje", "ok");
+		return respuesta;
 	}
-	@RequestMapping(value="/eliminarTratamiento", method=RequestMethod.GET)
-	public String eliminarTratamientoAction(@RequestBody JSONObject entrada) {
+	@Transactional
+	@RequestMapping(value="/eliminarTratamiento", method=RequestMethod.POST)
+	public JSONObject eliminarTratamientoAction(@RequestBody JSONObject entrada) {
 		String id= entrada.get("id").toString();
-		Tratamiento tratamiento = entityManager.find(Tratamiento.class, id);
+		Tratamiento tratamiento = entityManager.find(Tratamiento.class, Long.parseLong(id));
+		Paciente paciente = entityManager.find(Paciente.class, tratamiento.getPaciente().getId());
+		paciente.getTratamiento().remove(tratamiento);
+		entityManager.persist(paciente);
 		entityManager.remove(tratamiento);	
-		return "ok";
+		return new JSONObject();
 	}
+	@Transactional
 	@RequestMapping(value="/toma", method=RequestMethod.GET)
 	public String tomaAction(@RequestBody JSONObject entrada) {
 		String id= entrada.get("id").toString();
@@ -207,16 +243,15 @@ public class MobileController {
 			paciente.put("listaMensajes",listaMen);
 			paciente.put("medCabecera", medicoToJSON(entrada.getMedCabecera(),1));
 			paciente.put("farmacia", farmaciaToJSON(entrada.getFarmacia()));
-			JSONArray listaTrat=new JSONArray();
-			for(Tratamiento tratamiento: entrada.getTratamiento())
-			{
-				listaTrat.add(tratamientoToJSON(tratamiento));
-			}
-			paciente.put("tratamientos",listaTrat);
 		}
+		JSONArray listaTrat=new JSONArray();
+		for(Tratamiento tratamiento: entrada.getTratamiento())
+		{
+			listaTrat.add(tratamientoToJSON(tratamiento));
+		}
+		paciente.put("tratamientos",listaTrat);
 		return paciente;
-	}
-	
+	}	
 	//JSON de la entity farmacia
 	private JSONObject farmaciaToJSON(Farmacia entrada)
 	{
@@ -243,16 +278,16 @@ public class MobileController {
 		return tratamiento;
 	}
 	//JSON de la entity medicamento
-		private JSONObject medicamentoToJSON(Medicamento entrada)
-		{
-			JSONObject medicamento= new JSONObject();
-			medicamento.put("id", entrada.getId());
-			medicamento.put("nombre", entrada.getNombre());
-			medicamento.put("descripcion", entrada.getDescripcion());
-			medicamento.put("laboratorio", entrada.getLaboratorio());
-			medicamento.put("precio", entrada.getPrecio());
-			return medicamento;
-		}
+	private JSONObject medicamentoToJSON(Medicamento entrada)
+	{
+		JSONObject medicamento= new JSONObject();
+		medicamento.put("id", entrada.getId());
+		medicamento.put("nombre", entrada.getNombre());
+		medicamento.put("descripcion", entrada.getDescripcion());
+		medicamento.put("laboratorio", entrada.getLaboratorio());
+		medicamento.put("precio", entrada.getPrecio());
+		return medicamento;
+	}
 	//JSON de la entity mensaje
 	private JSONObject mensajeToJSON(Mensaje entrada){
 		JSONObject mensaje= new JSONObject();
@@ -276,39 +311,39 @@ public class MobileController {
 		return usuario;
 	}
 
+	/*----cambios de JSON a entitys-----*/
+	//Json a mensaje
 	private Mensaje JsonToMensaje(JSONObject entrada){
 		Mensaje mensaje= new Mensaje();
 		mensaje.setAsunto(entrada.get("asunto").toString());
 		mensaje.setLeido(false);
 		mensaje.setMensaje(entrada.get("mensaje").toString());
 		mensaje.setFechaMensaje(entrada.get("fecha").toString());
-		mensaje.setDestinatario(JsonToUsuario((JSONObject)entrada.get("destinatario")));
-		mensaje.setRemitente(JsonToUsuario((JSONObject)entrada.get("destinatario")));
+		mensaje.setDestinatario(JsonToUsuario(entrada.get("destinatario").toString()));
+		mensaje.setRemitente(JsonToUsuario(entrada.get("remitente").toString()));
 		return mensaje;
 	}
-	private Usuario JsonToUsuario(JSONObject entrada){
-		String id= entrada.get("id").toString();
-		Usuario usuario= entityManager.find(Usuario.class, id);
+	private Usuario JsonToUsuario(String id){
+		Usuario usuario= entityManager.find(Usuario.class, Long.parseLong(id));
 		return usuario;
 	}
 	private Tratamiento JsonToTratamiento(JSONObject entrada){
 		Tratamiento tratamiento= new Tratamiento();
-		tratamiento.setMedicamento(JsonToMedicamento((JSONObject) entrada.get("medicamento")));
-		tratamiento.setPaciente(JsonToPaciente((JSONObject) entrada.get("paciente")));
+		tratamiento.setMedicamento(JsonToMedicamento(entrada.get("medicamento").toString()));
+		tratamiento.setPaciente(JsonToPaciente(entrada.get("paciente").toString()));
 		tratamiento.setFechaInicio(entrada.get("fechaInicio").toString());
 		tratamiento.setFechaFin(entrada.get("fechaFin").toString());
 		tratamiento.setNumDosis(Integer.parseInt(entrada.get("numDosis").toString()));
+		tratamiento.setPerioicidad(entrada.get("periodicidad").toString());
 		tratamiento.setNumDosisDia(0);
 		return tratamiento;
 	}
-	private Medicamento JsonToMedicamento(JSONObject entrada){
-		String id= entrada.get("id").toString();
-		return entityManager.find(Medicamento.class, id);
+	private Medicamento JsonToMedicamento(String id){
+		return entityManager.find(Medicamento.class,Long.parseLong(id));
 	}
-	private Paciente JsonToPaciente(JSONObject entrada)
+	private Paciente JsonToPaciente(String id)
 	{
-		String id= entrada.get("id").toString();
-		return entityManager.find(Paciente.class, id);
+		return entityManager.find(Paciente.class, Long.parseLong(id));
 	}
 
 }
